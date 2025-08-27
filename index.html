@@ -5,492 +5,160 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CRM PAP – Plug Soluções</title>
   <style>
-    :root{
-      --bg:#f8fafc;
+    :root {
+      --bg:#ffffff;
       --panel:#ffffff;
-      --muted:#64748b;
       --txt:#0f172a;
+      --muted:#6b7280;
       --brand:#001952;
-      --brand-2:#3b5bcc;
       --accent:var(--brand);
-      --danger:#dc2626;
-      --warn:#d97706;
-      --stroke:#e2e8f0;
+      --stroke:#e5e7eb;
       --stroke-strong:#cbd5e1;
-      --input:#ffffff;
-      --placeholder:#94a3b8;
-      --c-cyan:#00b5e2;
-      --c-magenta:#e80c7a;
-      --c-yellow:#ffd400;
+      --shadow:0 6px 18px rgba(2,6,23,.06);
     }
-    *{box-sizing:border-box}
-    ::placeholder{color:var(--placeholder)}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--txt)}
-    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
-    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+    [data-theme="dark"] {
+      --bg:#0f172a;
+      --panel:#1e293b;
+      --txt:#f1f5f9;
+      --muted:#94a3b8;
+      --stroke:#334155;
+      --stroke-strong:#475569;
+      --shadow:0 6px 18px rgba(0,0,0,.6);
+    }
+    body {margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--txt);}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
     .brand{display:flex;align-items:center;gap:12px}
-    .logo{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),var(--brand-2));border:1px solid var(--stroke-strong);overflow:hidden}
+    .logo{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:var(--brand);overflow:hidden}
     .logo img{width:100%;height:100%;object-fit:cover}
     h1{font-size:22px;margin:0}
-    .panel{background:var(--panel);border:1px solid var(--stroke);border-radius:16px;padding:16px;margin:16px 0;box-shadow:0 2px 8px rgba(2,6,23,.04)}
+    .panel{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;padding:16px;margin:16px 0;box-shadow:var(--shadow)}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
     label{font-size:12px;color:var(--muted)}
-    input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--stroke-strong);background:var(--input);color:var(--txt);outline:none}
-    input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,25,82,.15)}
-    textarea{min-height:72px}
-    .col-6{grid-column:span 6}.col-4{grid-column:span 4}.col-3{grid-column:span 3}.col-8{grid-column:span 8}.col-12{grid-column:span 12}
-    @media(max-width:720px){.col-6,.col-4,.col-3,.col-8,.col-12{grid-column:span 12}}
-    .actions{display:flex;flex-wrap:wrap;gap:10px}
-    button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;border:1px solid var(--stroke-strong);background:#fff}
-    button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:700}
-    button.warn{background:#fff;color:#1f2937}
-    button.danger{background:#fff;color:#b91c1c}
-    .table{width:100%;border-collapse:collapse;border-spacing:0}
-    .table th{background:#f1f5f9}
-    .table th,.table td{border-bottom:1px solid var(--stroke);padding:10px;text-align:left;font-size:13px}
-    .pill{padding:2px 8px;border-radius:999px;border:1px solid var(--stroke-strong);font-size:11px;display:inline-block}
-    .pill.quente{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
-    .pill.morno{background:#fffbeb;color:#92400e;border-color:#fde68a}
-    .pill.frio{background:#f8fafc;color:#334155;border-color:#e2e8f0}
-    .footer{color:var(--muted);font-size:12px;margin-top:6px}
-    details{margin:8px 0}
-    .hint{color:var(--muted);font-size:12px}
-    .kpi{display:flex;gap:10px;flex-wrap:wrap}
-    .kpi .card{flex:1 1 160px;background:#ffffff;border:1px solid var(--stroke);border-radius:14px;padding:12px;box-shadow:0 2px 8px rgba(2,6,23,.04)}
-    .kpi .card .n{font-weight:800;font-size:18px;color:#0f172a}
-    .link{color:#0b63ff;text-decoration:none}
-    .brandbar{height:6px;background:linear-gradient(90deg,var(--c-cyan),var(--c-magenta),var(--c-yellow));border-radius:999px;margin-top:8px;border:1px solid var(--stroke)}
-    .tools{display:flex;gap:8px;flex-wrap:wrap}
-    .tools .mini{font-size:12px;border-radius:10px;border:1px solid var(--stroke-strong);background:#fff;color:#0f172a;padding:6px 10px;cursor:pointer}
-    .color{inline-size:140px}
+    input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--stroke-strong);background:var(--panel);color:var(--txt)}
+    input:focus{border-color:var(--brand);outline:none}
+    .col-6{grid-column:span 6}
+    .col-12{grid-column:span 12}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    button{border:1px solid var(--stroke-strong);border-radius:12px;padding:10px 14px;cursor:pointer}
+    button.primary{background:var(--brand);color:#fff}
+    button.warn{background:#fbbf24;color:#1f2937}
+    button.danger{background:#ef4444;color:#fff}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border-bottom:1px solid var(--stroke);padding:8px;text-align:left;font-size:13px}
+    .kpi{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+    .kpi .card{flex:1 1 160px;background:var(--panel);border:1px solid var(--stroke);border-radius:12px;padding:12px;text-align:center}
+    .kpi .card .n{font-weight:700;font-size:18px}
+    .footer{font-size:12px;color:var(--muted);margin-top:8px}
   </style>
 </head>
-<body>
+<body data-theme="light">
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo" id="logoBox" title="Logo Plug Soluções">
-          <img id="logoImg" alt="Logo Plug Soluções" />
-        </div>
-        <div>
-          <h1>CRM PAP – Plug Soluções</h1>
-          <div class="footer">Link único para toda a equipe. Cada lead registra a <strong>Vendedora responsável</strong>.</div>
-          <div class="brandbar"></div>
-        </div>
+        <div class="logo"><img src="logo.png" alt="Logo" onerror="this.style.display='none'"></div>
+        <h1>CRM PAP – Plug Soluções</h1>
       </div>
-      <div>
-        <div class="tools" style="margin-top:8px">
-          <button class="mini" id="btnLogo">Trocar logo</button>
-          <input type="color" id="brandPicker" class="mini color" title="Cor da marca"/>
-          <button class="mini" id="saveTheme">Salvar tema</button>
-          <button class="mini" id="resetTheme">Padrão</button>
-        </div>
-      </div>
+      <button id="toggleTheme">🌙/☀️</button>
     </header>
 
     <section class="panel">
       <div class="grid">
-        <div class="col-4">
-          <label>Data</label>
-          <input id="dataContato" type="date" />
+        <div class="col-6">
+          <label>Vendedor</label>
+          <input id="vendedor" placeholder="Ex.: Carla" />
         </div>
-        <div class="col-4">
-          <label>Vendedora responsável</label>
-          <input id="vendedora" placeholder="Ex.: Carla" />
+        <div class="col-6">
+          <label>Nome do lead</label>
+          <input id="lead" placeholder="Ex.: Ana Paula" />
         </div>
-        <div class="col-4">
-          <label>Telefone/WhatsApp</label>
+        <div class="col-6">
+          <label>Telefone</label>
           <input id="telefone" placeholder="(XX) XXXXX-XXXX" />
         </div>
-        <div class="col-8">
-          <label>Nome da Empresa</label>
+        <div class="col-6">
+          <label>Empresa</label>
           <input id="empresa" placeholder="Ex.: Contábil Minas LTDA" />
-        </div>
-        <div class="col-4">
-          <label>Responsável pelo Contato</label>
-          <input id="responsavel" placeholder="Ex.: Ana Paula" />
-        </div>
-        <div class="col-12">
-          <label>Endereço</label>
-          <input id="endereco" placeholder="Rua, nº, bairro, cidade" />
-        </div>
-        <div class="col-6">
-          <label>Volume de Impressões/Mês</label>
-          <select id="volume">
-            <option value="até 2.000">até 2.000</option>
-            <option value="2.000–5.000">2.000–5.000</option>
-            <option value="> 5.000">acima de 5.000</option>
-          </select>
-        </div>
-        <div class="col-6">
-          <label>Situação Atual</label>
-          <select id="situacao">
-            <option value="Tem impressora própria">Tem impressora própria</option>
-            <option value="Já aluga de terceiros">Já aluga de terceiros</option>
-            <option value="Sem solução definida">Sem solução definida</option>
-          </select>
-        </div>
-        <div class="col-6">
-          <label>Interesse Identificado</label>
-          <select id="interesse">
-            <option value="Frio">Frio</option>
-            <option value="Morno">Morno</option>
-            <option value="Quente">Quente</option>
-          </select>
-        </div>
-        <div class="col-6">
-          <label>Status do Lead</label>
-          <select id="status">
-            <option>Novo contato</option>
-            <option>Em negociação</option>
-            <option>Proposta enviada</option>
-            <option>Fechado (ganho)</option>
-            <option>Perdido</option>
-          </select>
-        </div>
-        <div class="col-12">
-          <label>Observações</label>
-          <textarea id="obs" placeholder="Informações úteis (ex.: modelo desejado, volume real, dor atual)"></textarea>
         </div>
         <div class="col-12 actions">
           <button class="primary" id="addBtn">Adicionar Lead</button>
-          <button id="csvBtn">Exportar CSV do Dia</button>
-          <button class="warn" id="whatsBtn">Copiar relatório WhatsApp</button>
-          <button class="danger" id="resetBtn" title="Limpa somente o dia atual">Zerar dia atual</button>
+          <button id="csvBtn">Exportar CSV</button>
+          <button class="warn" id="whatsBtn">Copiar WhatsApp</button>
+          <button class="danger" id="resetBtn">Zerar dia</button>
         </div>
-        <div class="col-12 hint">Dica: gere o relatório ao fim do dia. Os dados ficam salvos no aparelho (localStorage) por <em>dia</em>.</div>
       </div>
     </section>
 
     <section class="panel">
-      <h3 style="margin-top:0">Leads do dia</h3>
+      <h3>Leads do dia</h3>
       <div class="kpi" id="kpis"></div>
-      <div style="overflow:auto;margin-top:10px">
-        <table class="table" id="leadsTable">
-          <thead>
-            <tr>
-              <th>Vendedora</th>
-              <th>Empresa</th>
-              <th>Contato</th>
-              <th>Telefone</th>
-              <th>Volume</th>
-              <th>Situação</th>
-              <th>Interesse</th>
-              <th>Status</th>
-              <th>Obs.</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <details>
-        <summary>Configurações de Relatório</summary>
-        <div class="grid">
-          <div class="col-12">
-            <label>Observações gerais (opcional, aparece no final do relatório)</label>
-            <textarea id="obsGerais" placeholder="Resumo do dia, objeções mais comuns, próximos passos..."></textarea>
-          </div>
-        </div>
-      </details>
+      <table class="table" id="leadsTable">
+        <thead><tr><th>Vendedor</th><th>Lead</th><th>Telefone</th><th>Empresa</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
     </section>
 
-    <footer class="footer">Plug Soluções • CRM PAP leve e offline-first • Link único • Feito para GitHub Pages</footer>
+    <footer class="footer">Plug Soluções • CRM PAP • Claro/Escuro</footer>
   </div>
 
 <script>
 (function(){
-  const $ = (sel)=>document.querySelector(sel);
-  const params = new URLSearchParams(location.search);
-  const logoURLParam = params.get('logo');
-  const brandParam = params.get('brand');
-  const todayStr = new Date().toISOString().slice(0,10);
-  const KEY = (d=todayStr)=>`plugpap:diario:${d}`;
-  const THEME_KEY = `plugpap:theme`;
-  const LOGO_KEY = `plugpap:logo`;
+  const $=(s)=>document.querySelector(s);
+  const today=new Date().toISOString().slice(0,10);
+  const KEY="crm:"+today;
 
-  const logoImg = $('#logoImg');
-  const brandPicker = $('#brandPicker');
-  const inputs = {
-    data: $('#dataContato'), ven: $('#vendedora'), empresa: $('#empresa'), resp: $('#responsavel'),
-    tel: $('#telefone'), end: $('#endereco'),
-    vol: $('#volume'), sit: $('#situacao'), int: $('#interesse'), sta: $('#status'), obs: $('#obs')
+  const inputs={ven:$('#vendedor'),lead:$('#lead'),tel:$('#telefone'),emp:$('#empresa')};
+  const tbody=$('#leadsTable tbody'),kpis=$('#kpis');
+
+  $('#addBtn').onclick=()=>{addLead()};
+  $('#resetBtn').onclick=()=>{if(confirm('Zerar dia?')){localStorage.removeItem(KEY);render();}};
+  $('#csvBtn').onclick=()=>exportCSV();
+  $('#whatsBtn').onclick=()=>copyWhats();
+  $('#toggleTheme').onclick=()=>{
+    const body=document.body;
+    body.dataset.theme=body.dataset.theme==="light"?"dark":"light";
   };
-  const obsGerais = $('#obsGerais');
-  const tbody = document.querySelector('#leadsTable tbody');
-  const kpis = $('#kpis');
 
-  inputs.data.value = todayStr;
-
-  // THEME
-  const storedTheme = JSON.parse(localStorage.getItem(THEME_KEY) || 'null');
-  if(storedTheme && storedTheme.brand){ setBrand(storedTheme.brand); brandPicker.value = toColorValue(storedTheme.brand); }
-  if(brandParam){ setBrand(brandParam); brandPicker.value = toColorValue(brandParam); }
-
-  // LOGO: prioridade = URL param > stored > default logo.png
-  const storedLogo = localStorage.getItem(LOGO_KEY);
-  if(logoURLParam){ setLogo(logoURLParam); }
-  else if(storedLogo){ setLogo(storedLogo); }
-  else { setLogo('logo.png'); }
-
-  render();
-
-  // Handlers
-  $('#addBtn').addEventListener('click', addLead);
-  $('#resetBtn').addEventListener('click', ()=>{ if(confirm('Zerar todos os leads do dia atual?')){ localStorage.removeItem(KEY()); render(); }});
-  $('#csvBtn').addEventListener('click', exportCSV);
-  $('#whatsBtn').addEventListener('click', copyWhats);
-  $('#btnLogo').addEventListener('click', pickLogo);
-  $('#saveTheme').addEventListener('click', ()=>{ localStorage.setItem(THEME_KEY, JSON.stringify({brand:getComputedStyle(document.documentElement).getPropertyValue('--brand').trim()})); alert('Tema salvo neste dispositivo.'); });
-  $('#resetTheme').addEventListener('click', ()=>{ localStorage.removeItem(THEME_KEY); setBrand('#001952'); brandPicker.value = '#001952'; alert('Tema padrão restaurado.'); });
-  brandPicker.addEventListener('input', (e)=> setBrand(e.target.value));
-
-  function pickLogo(){
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = ()=>{
-      const file = input.files && input.files[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = ()=>{ setLogo(reader.result); localStorage.setItem(LOGO_KEY, reader.result); };
-      reader.readAsDataURL(file);
-    };
-    input.click();
-  }
-
-  function setLogo(src){
-    if(!src){ return; }
-    logoImg.onerror = ()=>{};
-    logoImg.onload = ()=>{};
-    logoImg.src = src;
-  }
-
-  function toColorValue(val){
-    if(/^#/.test(val)) return val;
-    try{ const c = new Option().style; c.color = val; return c.color || '#001952'; } catch{ return '#001952'; }
-  }
-
-  function setBrand(color){
-    document.documentElement.style.setProperty('--brand', color);
-    try{
-      const hex = toColorValue(color).replace('#','');
-      const num = parseInt(hex.length===3 ? hex.split('').map(x=>x+x).join('') : hex, 16);
-      const r=(num>>16)&255,g=(num>>8)&255,b=num&255;
-      const lighten=(x)=>Math.min(255, Math.round(x + (255-x)*0.35));
-      const r2=lighten(r), g2=lighten(g), b2=lighten(b);
-      const hex2 = '#' + [r2,g2,b2].map(x=>x.toString(16).padStart(2,'0')).join('');
-      document.documentElement.style.setProperty('--brand-2', hex2);
-      document.documentElement.style.setProperty('--accent', color);
-    }catch{ /* noop */ }
-  }
-
-  function getDayData(){
-    const raw = localStorage.getItem(KEY());
-    return raw ? JSON.parse(raw) : { leads: [], obsGerais: '' };
-  }
-  function setDayData(data){ localStorage.setItem(KEY(), JSON.stringify(data)); }
-
+  function getData(){return JSON.parse(localStorage.getItem(KEY)||'{"leads":[]}');}
+  function setData(d){localStorage.setItem(KEY,JSON.stringify(d));}
   function addLead(){
-    const lead = {
-      data: inputs.data.value || todayStr,
-      vendedora: (inputs.ven.value||'').trim(),
-      empresa: (inputs.empresa.value||'').trim(),
-      resp: (inputs.resp.value||'').trim(),
-      tel: (inputs.tel.value||'').trim(),
-      end: (inputs.end.value||'').trim(),
-      vol: inputs.vol.value,
-      sit: inputs.sit.value,
-      int: inputs.int.value,
-      sta: inputs.sta.value,
-      obs: (inputs.obs.value||'').trim(),
-      id: crypto.randomUUID()
-    };
-    if(!lead.empresa){ alert('Informe o nome da empresa.'); return; }
-    if(!lead.vendedora){ alert('Informe o nome da Vendedora responsável.'); return; }
-    const data = getDayData();
-    data.leads.push(lead);
-    data.obsGerais = obsGerais.value;
-    setDayData(data);
-    clearForm();
-    render();
+    const L={vendedor:inputs.ven.value,lead:inputs.lead.value,tel:inputs.tel.value,emp:inputs.emp.value,id:crypto.randomUUID()};
+    if(!L.vendedor||!L.lead){alert('Preencha vendedor e lead');return;}
+    const d=getData();d.leads.push(L);setData(d);clear();render();
   }
-
-  function clearForm(){
-    inputs.ven.value = '';
-    inputs.empresa.value = '';
-    inputs.resp.value = '';
-    inputs.tel.value = '';
-    inputs.end.value = '';
-    inputs.vol.value = 'até 2.000';
-    inputs.sit.value = 'Tem impressora própria';
-    inputs.int.value = 'Frio';
-    inputs.sta.value = 'Novo contato';
-    inputs.obs.value = '';
-  }
-
+  function clear(){inputs.ven.value=inputs.lead.value=inputs.tel.value=inputs.emp.value="";}
   function render(){
-    const data = getDayData();
-    obsGerais.value = data.obsGerais || '';
-    tbody.innerHTML = '';
-    data.leads.forEach(L=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${esc(L.vendedora)}</td>
-        <td>${esc(L.empresa)}</td>
-        <td>${esc(L.resp)}</td>
-        <td>${esc(L.tel)}</td>
-        <td>${esc(L.vol)}</td>
-        <td>${esc(L.sit)}</td>
-        <td>${pill(L.int)}</td>
-        <td>${esc(L.sta)}</td>
-        <td title="${esc(L.obs)}">${esc(L.obs).slice(0,40)}${L.obs.length>40?'…':''}</td>
-        <td><a href="#" data-id="${L.id}" class="link del">remover</a></td>`;
-      tbody.appendChild(tr);
+    const d=getData();tbody.innerHTML="";
+    d.leads.forEach(L=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${esc(L.vendedor)}</td><td>${esc(L.lead)}</td><td>${esc(L.tel)}</td><td>${esc(L.emp)}</td>
+      <td><a href="#" data-id="${L.id}">remover</a></td>`;
+      tr.querySelector('a').onclick=(e)=>{e.preventDefault();del(L.id);};tbody.appendChild(tr);
     });
-    tbody.querySelectorAll('a.del').forEach(a=>a.addEventListener('click', (ev)=>{
-      ev.preventDefault();
-      const id = a.getAttribute('data-id');
-      const data = getDayData();
-      const idx = data.leads.findIndex(x=>x.id===id);
-      if(idx>-1){ data.leads.splice(idx,1); setDayData(data); render(); }
-    }));
-    renderKPIs(data.leads);
+    renderKPIs(d.leads);
   }
-
+  function del(id){const d=getData();d.leads=d.leads.filter(x=>x.id!==id);setData(d);render();}
   function renderKPIs(leads){
-    const total = leads.length;
-    const byStatus = group(leads, 'sta');
-    const ganhos = (byStatus['Fechado (ganho)']||[]).length;
-    const perda = (byStatus['Perdido']||[]).length;
-    const prop = (byStatus['Proposta enviada']||[]).length;
-    const neg = (byStatus['Em negociação']||[]).length;
-    const conv = total? ((ganhos/total)*100).toFixed(1): '0.0';
-
-    const byVen = group(leads, 'vendedora');
-
-    kpis.innerHTML = '';
-    const cards = [
-      ['Leads adicionados', total],
-      ['Em negociação', neg],
-      ['Propostas enviadas', prop],
-      ['Fechados (ganhos)', ganhos],
-      ['Perdidos', perda],
-      ['Conversão (%)', conv]
-    ];
-    cards.forEach(([t,n])=>{
-      const c = document.createElement('div');
-      c.className='card';
-      c.innerHTML = `<div class="n">${n}</div><div class="footer">${t}</div>`;
-      kpis.appendChild(c);
-    });
-
-    Object.keys(byVen).slice(0,6).forEach(name=>{
-      const n = byVen[name].length;
-      const c = document.createElement('div');
-      c.className='card';
-      c.innerHTML = `<div class="n">${n}</div><div class="footer">Leads – ${esc(name)}</div>`;
-      kpis.appendChild(c);
-    });
+    kpis.innerHTML="";const total=leads.length;
+    const byVen={};leads.forEach(l=>byVen[l.vendedor]=(byVen[l.vendedor]||0)+1);
+    kpis.appendChild(card(total,"Total leads"));
+    Object.keys(byVen).forEach(v=>kpis.appendChild(card(byVen[v],"Leads – "+v)));
   }
-
-  function group(arr, key){
-    return arr.reduce((acc,cur)=>{ (acc[cur[key]] ||= []).push(cur); return acc; },{});
-  }
-
-  function pill(int){
-    const c = (int||'').toLowerCase();
-    return `<span class="pill ${c}">${int||''}</span>`;
-  }
-
-  function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[m])); }
-
+  function card(n,t){const c=document.createElement('div');c.className='card';c.innerHTML=`<div class="n">${n}</div><div>${t}</div>`;return c;}
+  function esc(s){return (s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[m]));}
   function exportCSV(){
-    const {leads} = getDayData();
-    if(!leads.length){ alert('Nenhum lead para exportar.'); return; }
-    const cols = ['Data','Vendedora','Empresa','Responsável','Telefone','Endereço','Volume','Situação','Interesse','Status','Observações'];
-    const rows = leads.map(L=>[
-      L.data, L.vendedora, L.empresa, L.resp, L.tel, L.end, L.vol, L.sit, L.int, L.sta, (L.obs||'').replaceAll('
-',' ')
-    ]);
-    const csv = [cols.join(';')].concat(rows.map(r=>r.map(cell=>`"${(cell||'').replaceAll('"','""')}"`).join(';'))).join('
-');
-    download(`leads_${todayStr}.csv`, csv, 'text/csv');
+    const {leads}=getData();if(!leads.length){alert("Nada");return;}
+    const rows=[["Vendedor","Lead","Telefone","Empresa"]].concat(leads.map(L=>[L.vendedor,L.lead,L.tel,L.emp]));
+    const csv=rows.map(r=>r.map(c=>`"${c}"`).join(";")).join("\n");
+    download("leads_"+today+".csv",csv);
   }
-
-  function download(filename, content, type){
-    const blob = new Blob([content], {type});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
-    setTimeout(()=>URL.revokeObjectURL(url), 500);
+  function download(fn,content){const blob=new Blob([content],{type:"text/csv"});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();}
+  function copyWhats(){
+    const {leads}=getData();if(!leads.length){alert("Nada");return;}
+    const txt=["Relatório – "+today,"Total: "+leads.length,""].concat(leads.map(L=>`- ${L.lead} | ${L.tel} | ${L.emp} | Vend: ${L.vendedor}`)).join("\n");
+    navigator.clipboard.writeText(txt).then(()=>alert("Copiado!"));
   }
-
-  function formatWhats(){
-    const {leads} = getDayData();
-    const byStatus = group(leads,'sta');
-    const total = leads.length;
-    const ganhos = (byStatus['Fechado (ganho)']||[]).length;
-    const perda = (byStatus['Perdido']||[]).length;
-    const prop = (byStatus['Proposta enviada']||[]).length;
-    const neg = (byStatus['Em negociação']||[]).length;
-    const conv = total? ((ganhos/total)*100).toFixed(1): '0.0';
-
-    const byVen = group(leads,'vendedora');
-    const ranking = Object.entries(byVen).map(([name,items])=>({name, n:items.length})).sort((a,b)=>b.n-a.n);
-
-    const topPotenciais = leads
-      .slice()
-      .sort((a,b)=> score(b)-score(a))
-      .slice(0,5);
-
-    function score(L){
-      let s=0;
-      if(L.int==='Quente') s+=3; else if(L.int==='Morno') s+=1;
-      if(L.vol==='2.000–5.000') s+=1; else if(L.vol==='> 5.000' || L.vol==='acima de 5.000') s+=3;
-      if(L.sta==='Em negociação') s+=1; if(L.sta==='Proposta enviada') s+=2; if(L.sta==='Fechado (ganho)') s+=4;
-      return s;
-    }
-
-    const dBR = new Date(todayStr+'T00:00:00').toLocaleDateString('pt-BR');
-    const header = [
-      `Relatório – PAP Plug Soluções – ${dBR}`,
-      `- Leads adicionados: ${total}`,
-      `- Em negociação: ${neg}`,
-      `- Propostas enviadas: ${prop}`,
-      `- Fechados (ganhos): ${ganhos}`,
-      `- Perdidos: ${perda}`,
-      `- Conversão: ${conv}%`,
-      ``,
-      `Leads por vendedora:`,
-      ...ranking.map(r=>`- ${r.name || 'Sem nome'}: ${r.n}`),
-      ``,
-      `Top potenciais (prioridade)`,
-      ...topPotenciais.map((L,i)=> `- ${i+1}. ${L.empresa} – Vend: ${L.vendedora||'—'} – ${L.resp || 's/contato'} – ${L.tel || 's/tel'} – Vol: ${L.vol} – ${L.int} – ${L.sta}`)
-    ];
-
-    const outros = leads.length? [
-      '',
-      'Demais leads do dia',
-      ...leads.filter(L=>!topPotenciais.includes(L)).map(L=> `- ${L.empresa} – Vend: ${L.vendedora||'—'} – ${L.int} – ${L.sta}${L.obs?` – Obs: ${L.obs}`:''}`)
-    ] : [];
-
-    const extra = obsGerais.value.trim()? ['', 'Observações gerais', `- ${obsGerais.value.trim()}`] : [];
-
-    return header.concat(outros).concat(extra).join('
-');
-  }
-
-  async function copyWhats(){
-    const text = formatWhats();
-    try{
-      await navigator.clipboard.writeText(text);
-      alert('Relatório copiado! Cole no WhatsApp.');
-    }catch(e){
-      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
-    }
-  }
+  render();
 })();
 </script>
 </body>
