@@ -54,6 +54,9 @@
     .kpi .card .n{font-weight:800;font-size:18px}
     .link{color:#60a5fa;text-decoration:none}
     .brandbar{height:6px;background:linear-gradient(90deg,var(--c-cyan),var(--c-magenta),var(--c-yellow));border-radius:999px;margin-top:8px}
+    .tools{display:flex;gap:8px;flex-wrap:wrap}
+    .tools .mini{font-size:12px;border-radius:10px;border:1px solid var(--stroke);background:#0b1220;color:#fff;padding:6px 10px;cursor:pointer}
+    .color{inline-size:140px}
   </style>
 </head>
 <body>
@@ -66,11 +69,18 @@
         </div>
         <div>
           <h1>CRM PAP – Plug Soluções</h1>
-          <div class="footer">Use <code>?vendedora=SeuNome</code> e, se quiser, <code>&logo=URL</code> e <code>&brand=%23HEX</code>.</div>
+          <div class="footer">Este link é único para toda a equipe. Cada lead registra a <strong>Vendedora responsável</strong>.</div>
           <div class="brandbar"></div>
         </div>
       </div>
-      <div class="badge" id="vendedoraBadge">Vendedora: —</div>
+      <div>
+        <div class="tools" style="margin-top:8px">
+          <button class="mini" id="btnLogo">Trocar logo</button>
+          <input type="color" id="brandPicker" class="mini color" title="Cor da marca"/>
+          <button class="mini" id="saveTheme">Salvar tema</button>
+          <button class="mini" id="resetTheme">Padrão</button>
+        </div>
+      </div>
     </header>
 
     <section class="panel">
@@ -79,17 +89,21 @@
           <label>Data</label>
           <input id="dataContato" type="date" />
         </div>
+        <div class="col-4">
+          <label>Vendedora responsável</label>
+          <input id="vendedora" placeholder="Ex.: Carla" />
+        </div>
+        <div class="col-4">
+          <label>Telefone/WhatsApp</label>
+          <input id="telefone" placeholder="(XX) XXXXX-XXXX" />
+        </div>
         <div class="col-8">
           <label>Nome da Empresa</label>
           <input id="empresa" placeholder="Ex.: Contábil Minas LTDA" />
         </div>
-        <div class="col-6">
+        <div class="col-4">
           <label>Responsável pelo Contato</label>
           <input id="responsavel" placeholder="Ex.: Ana Paula" />
-        </div>
-        <div class="col-6">
-          <label>Telefone/WhatsApp</label>
-          <input id="telefone" placeholder="(XX) XXXXX-XXXX" />
         </div>
         <div class="col-12">
           <label>Endereço</label>
@@ -139,7 +153,7 @@
           <button class="warn" id="whatsBtn">Copiar relatório WhatsApp</button>
           <button class="danger" id="resetBtn" title="Limpa somente o dia atual">Zerar dia atual</button>
         </div>
-        <div class="col-12 hint">Dica: gere o relatório ao fim do dia. Os dados ficam salvos no aparelho (localStorage) por vendedora e por data.</div>
+        <div class="col-12 hint">Dica: gere o relatório ao fim do dia. Os dados ficam salvos no aparelho (localStorage) por <em>dia</em>. Agora o link é único para todos.</div>
       </div>
     </section>
 
@@ -150,6 +164,7 @@
         <table class="table" id="leadsTable">
           <thead>
             <tr>
+              <th>Vendedora</th>
               <th>Empresa</th>
               <th>Contato</th>
               <th>Telefone</th>
@@ -175,11 +190,304 @@
       </details>
     </section>
 
-    <footer class="footer">Plug Soluções • CRM PAP leve e offline-first • Feito para GitHub Pages</footer>
+    <footer class="footer">Plug Soluções • CRM PAP leve e offline-first • Link único • Feito para GitHub Pages</footer>
   </div>
 
 <script>
-// JS igual ao gerado antes (responsável por salvar localmente, exportar CSV, WhatsApp etc.)
+(function(){
+  const $ = (sel)=>document.querySelector(sel);
+  const params = new URLSearchParams(location.search);
+  // Suporte opcional aos parâmetros existentes (logo e brand continuam válidos)
+  const logoURLParam = params.get('logo');
+  const brandParam = params.get('brand');
+  const todayStr = new Date().toISOString().slice(0,10);
+  // Agora a chave NÃO depende de vendedora; o nome fica em cada lead
+  const KEY = (d=todayStr)=>`plugpap:diario:${d}`;
+  const THEME_KEY = `plugpap:theme`;
+  const LOGO_KEY = `plugpap:logo`;
+
+  // Elements
+  const logoImg = $('#logoImg');
+  const logoFallback = $('#logoFallback');
+  const brandPicker = $('#brandPicker');
+  const inputs = {
+    data: $('#dataContato'), ven: $('#vendedora'), empresa: $('#empresa'), resp: $('#responsavel'),
+    tel: $('#telefone'), end: $('#endereco'),
+    vol: $('#volume'), sit: $('#situacao'), int: $('#interesse'), sta: $('#status'), obs: $('#obs')
+  };
+  const obsGerais = $('#obsGerais');
+  const tbody = document.querySelector('#leadsTable tbody');
+  const kpis = $('#kpis');
+
+  // Init UI
+  inputs.data.value = todayStr;
+
+  // Theme & Logo load order: URL param > stored > default
+  const storedTheme = JSON.parse(localStorage.getItem(THEME_KEY) || 'null');
+  if(storedTheme && storedTheme.brand){ setBrand(storedTheme.brand); brandPicker.value = toColorValue(storedTheme.brand); }
+  if(brandParam){ setBrand(brandParam); brandPicker.value = toColorValue(brandParam); }
+
+  const storedLogo = localStorage.getItem(LOGO_KEY);
+  if(storedLogo){ setLogo(storedLogo); }
+  if(logoURLParam){ setLogo(logoURLParam); }
+
+  // Render table/kpis
+  render();
+
+  // Handlers
+  $('#addBtn').addEventListener('click', addLead);
+  $('#resetBtn').addEventListener('click', ()=>{ if(confirm('Zerar todos os leads do dia atual?')){ localStorage.removeItem(KEY()); render(); }});
+  $('#csvBtn').addEventListener('click', exportCSV);
+  $('#whatsBtn').addEventListener('click', copyWhats);
+  $('#btnLogo').addEventListener('click', pickLogo);
+  $('#saveTheme').addEventListener('click', ()=>{ localStorage.setItem(THEME_KEY, JSON.stringify({brand:getComputedStyle(document.documentElement).getPropertyValue('--brand').trim()})); alert('Tema salvo neste dispositivo.'); });
+  $('#resetTheme').addEventListener('click', ()=>{ localStorage.removeItem(THEME_KEY); setBrand('#001952'); brandPicker.value = '#001952'; alert('Tema padrão restaurado.'); });
+  brandPicker.addEventListener('input', (e)=> setBrand(e.target.value));
+
+  function pickLogo(){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = ()=>{
+      const file = input.files && input.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{ setLogo(reader.result); localStorage.setItem(LOGO_KEY, reader.result); };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  function setLogo(src){
+    if(!src){ logoImg.style.display='none'; logoFallback.style.display='grid'; return; }
+    logoImg.src = src; logoImg.onload = ()=>{ logoImg.style.display='block'; logoFallback.style.display='none'; };
+  }
+
+  function toColorValue(val){
+    if(/^#/.test(val)) return val;
+    try{ const c = new Option().style; c.color = val; return c.color || '#001952'; } catch{ return '#001952'; }
+  }
+
+  function setBrand(color){
+    document.documentElement.style.setProperty('--brand', color);
+    try{
+      const hex = toColorValue(color).replace('#','');
+      const num = parseInt(hex.length===3 ? hex.split('').map(x=>x+x).join('') : hex, 16);
+      const r=(num>>16)&255,g=(num>>8)&255,b=num&255;
+      const lighten=(x)=>Math.min(255, Math.round(x + (255-x)*0.35));
+      const r2=lighten(r), g2=lighten(g), b2=lighten(b);
+      const hex2 = '#' + [r2,g2,b2].map(x=>x.toString(16).padStart(2,'0')).join('');
+      document.documentElement.style.setProperty('--brand-2', hex2);
+      document.documentElement.style.setProperty('--accent', color);
+    }catch{ /* noop */ }
+  }
+
+  function getDayData(){
+    const raw = localStorage.getItem(KEY());
+    return raw ? JSON.parse(raw) : { leads: [], obsGerais: '' };
+  }
+  function setDayData(data){ localStorage.setItem(KEY(), JSON.stringify(data)); }
+
+  function addLead(){
+    const lead = {
+      data: inputs.data.value || todayStr,
+      vendedora: (inputs.ven.value||'').trim(),
+      empresa: (inputs.empresa.value||'').trim(),
+      resp: (inputs.resp.value||'').trim(),
+      tel: (inputs.tel.value||'').trim(),
+      end: (inputs.end.value||'').trim(),
+      vol: inputs.vol.value,
+      sit: inputs.sit.value,
+      int: inputs.int.value,
+      sta: inputs.sta.value,
+      obs: (inputs.obs.value||'').trim(),
+      id: crypto.randomUUID()
+    };
+    if(!lead.empresa){ alert('Informe o nome da empresa.'); return; }
+    if(!lead.vendedora){ alert('Informe o nome da Vendedora responsável.'); return; }
+    const data = getDayData();
+    data.leads.push(lead);
+    data.obsGerais = obsGerais.value;
+    setDayData(data);
+    clearForm();
+    render();
+  }
+
+  function clearForm(){
+    inputs.ven.value = '';
+    inputs.empresa.value = '';
+    inputs.resp.value = '';
+    inputs.tel.value = '';
+    inputs.end.value = '';
+    inputs.vol.value = 'até 2.000';
+    inputs.sit.value = 'Tem impressora própria';
+    inputs.int.value = 'Frio';
+    inputs.sta.value = 'Novo contato';
+    inputs.obs.value = '';
+  }
+
+  function render(){
+    const data = getDayData();
+    obsGerais.value = data.obsGerais || '';
+    tbody.innerHTML = '';
+    data.leads.forEach(L=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${esc(L.vendedora)}</td>
+        <td>${esc(L.empresa)}</td>
+        <td>${esc(L.resp)}</td>
+        <td>${esc(L.tel)}</td>
+        <td>${esc(L.vol)}</td>
+        <td>${esc(L.sit)}</td>
+        <td>${pill(L.int)}</td>
+        <td>${esc(L.sta)}</td>
+        <td title="${esc(L.obs)}">${esc(L.obs).slice(0,40)}${L.obs.length>40?'…':''}</td>
+        <td><a href="#" data-id="${L.id}" class="link del">remover</a></td>`;
+      tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll('a.del').forEach(a=>a.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      const id = a.getAttribute('data-id');
+      const data = getDayData();
+      const idx = data.leads.findIndex(x=>x.id===id);
+      if(idx>-1){ data.leads.splice(idx,1); setDayData(data); render(); }
+    }));
+    renderKPIs(data.leads);
+  }
+
+  function renderKPIs(leads){
+    const total = leads.length;
+    const byStatus = group(leads, 'sta');
+    const ganhos = (byStatus['Fechado (ganho)']||[]).length;
+    const perda = (byStatus['Perdido']||[]).length;
+    const prop = (byStatus['Proposta enviada']||[]).length;
+    const neg = (byStatus['Em negociação']||[]).length;
+    const conv = total? ((ganhos/total)*100).toFixed(1): '0.0';
+
+    // Por vendedora
+    const byVen = group(leads, 'vendedora');
+
+    kpis.innerHTML = '';
+    const cards = [
+      ['Leads adicionados', total],
+      ['Em negociação', neg],
+      ['Propostas enviadas', prop],
+      ['Fechados (ganhos)', ganhos],
+      ['Perdidos', perda],
+      ['Conversão (%)', conv]
+    ];
+    cards.forEach(([t,n])=>{
+      const c = document.createElement('div');
+      c.className='card';
+      c.innerHTML = `<div class="n">${n}</div><div class="footer">${t}</div>`;
+      kpis.appendChild(c);
+    });
+
+    // Card por vendedora (até 6 vendedoras diferentes)
+    Object.keys(byVen).slice(0,6).forEach(name=>{
+      const n = byVen[name].length;
+      const c = document.createElement('div');
+      c.className='card';
+      c.innerHTML = `<div class="n">${n}</div><div class="footer">Leads – ${esc(name)}</div>`;
+      kpis.appendChild(c);
+    });
+  }
+
+  function group(arr, key){
+    return arr.reduce((acc,cur)=>{ (acc[cur[key]] ||= []).push(cur); return acc; },{});
+  }
+
+  function pill(int){
+    const c = (int||'').toLowerCase();
+    return `<span class="pill ${c}">${int||''}</span>`;
+  }
+
+  function esc(s){ return (s||'').replace(/[&<>\"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+
+  function exportCSV(){
+    const {leads} = getDayData();
+    if(!leads.length){ alert('Nenhum lead para exportar.'); return; }
+    const cols = ['Data','Vendedora','Empresa','Responsável','Telefone','Endereço','Volume','Situação','Interesse','Status','Observações'];
+    const rows = leads.map(L=>[
+      L.data, L.vendedora, L.empresa, L.resp, L.tel, L.end, L.vol, L.sit, L.int, L.sta, (L.obs||'').replaceAll('\n',' ')
+    ]);
+    const csv = [cols.join(';')].concat(rows.map(r=>r.map(cell=>`"${(cell||'').replaceAll('"','""')}"`).join(';'))).join('\n');
+    download(`leads_${todayStr}.csv`, csv, 'text/csv');
+  }
+
+  function download(filename, content, type){
+    const blob = new Blob([content], {type});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 500);
+  }
+
+  function formatWhats(){
+    const {leads} = getDayData();
+    const byStatus = group(leads,'sta');
+    const total = leads.length;
+    const ganhos = (byStatus['Fechado (ganho)']||[]).length;
+    const perda = (byStatus['Perdido']||[]).length;
+    const prop = (byStatus['Proposta enviada']||[]).length;
+    const neg = (byStatus['Em negociação']||[]).length;
+    const conv = total? ((ganhos/total)*100).toFixed(1): '0.0';
+
+    const byVen = group(leads,'vendedora');
+    const ranking = Object.entries(byVen).map(([name,items])=>({name, n:items.length})).sort((a,b)=>b.n-a.n);
+
+    const topPotenciais = leads
+      .slice()
+      .sort((a,b)=> score(b)-score(a))
+      .slice(0,5);
+
+    function score(L){
+      let s=0;
+      if(L.int==='Quente') s+=3; else if(L.int==='Morno') s+=1;
+      if(L.vol==='2.000–5.000') s+=1; else if(L.vol==='> 5.000' || L.vol==='acima de 5.000') s+=3;
+      if(L.sta==='Em negociação') s+=1; if(L.sta==='Proposta enviada') s+=2; if(L.sta==='Fechado (ganho)') s+=4;
+      return s;
+    }
+
+    const dBR = new Date(todayStr+'T00:00:00').toLocaleDateString('pt-BR');
+    const header = [
+      `Relatório – PAP Plug Soluções – ${dBR}`,
+      `- Leads adicionados: ${total}`,
+      `- Em negociação: ${neg}`,
+      `- Propostas enviadas: ${prop}`,
+      `- Fechados (ganhos): ${ganhos}`,
+      `- Perdidos: ${perda}`,
+      `- Conversão: ${conv}%`,
+      ``,
+      `Leads por vendedora:`,
+      ...ranking.map(r=>`- ${r.name || 'Sem nome'}: ${r.n}`),
+      ``,
+      `Top potenciais (prioridade)`,
+      ...topPotenciais.map((L,i)=> `- ${i+1}. ${L.empresa} – Vend: ${L.vendedora||'—'} – ${L.resp || 's/contato'} – ${L.tel || 's/tel'} – Vol: ${L.vol} – ${L.int} – ${L.sta}`)
+    ];
+
+    const outros = leads.length? [
+      '',
+      'Demais leads do dia',
+      ...leads.filter(L=>!topPotenciais.includes(L)).map(L=> `- ${L.empresa} – Vend: ${L.vendedora||'—'} – ${L.int} – ${L.sta}${L.obs?` – Obs: ${L.obs}`:''}`)
+    ] : [];
+
+    const extra = obsGerais.value.trim()? ['', 'Observações gerais', `- ${obsGerais.value.trim()}`] : [];
+
+    return header.concat(outros).concat(extra).join('\n');
+  }
+
+  async function copyWhats(){
+    const text = formatWhats();
+    try{
+      await navigator.clipboard.writeText(text);
+      alert('Relatório copiado! Cole no WhatsApp.');
+    }catch(e){
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+  }
+})();
 </script>
 </body>
 </html>
