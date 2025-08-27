@@ -32,7 +32,7 @@
     .panel{background:rgba(15,22,38,.75);backdrop-filter: blur(6px);border:1px solid var(--stroke);border-radius:16px;padding:16px;margin:16px 0}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
     label{font-size:12px;color:var(--muted)}
-    input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:#0b1220;color:var(--txt)}
+    input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:#0b1220;color:#txt}
     textarea{min-height:72px}
     .col-6{grid-column:span 6}.col-4{grid-column:span 4}.col-3{grid-column:span 3}.col-8{grid-column:span 8}.col-12{grid-column:span 12}
     .actions{display:flex;flex-wrap:wrap;gap:10px}
@@ -64,12 +64,12 @@
     <header>
       <div class="brand">
         <div class="logo" id="logoBox" title="Logo Plug Soluções">
-          <span id="logoFallback" style="font-weight:800">PS</span>
-          <img id="logoImg" alt="Logo" style="display:none" />
+          <span id="logoFallback" style="font-weight:800; display:none">PS</span>
+          <img id="logoImg" alt="Logo Plug Soluções" />
         </div>
         <div>
           <h1>CRM PAP – Plug Soluções</h1>
-          <div class="footer">Este link é único para toda a equipe. Cada lead registra a <strong>Vendedora responsável</strong>.</div>
+          <div class="footer">Link único para toda a equipe. Cada lead registra a <strong>Vendedora responsável</strong>.</div>
           <div class="brandbar"></div>
         </div>
       </div>
@@ -153,7 +153,7 @@
           <button class="warn" id="whatsBtn">Copiar relatório WhatsApp</button>
           <button class="danger" id="resetBtn" title="Limpa somente o dia atual">Zerar dia atual</button>
         </div>
-        <div class="col-12 hint">Dica: gere o relatório ao fim do dia. Os dados ficam salvos no aparelho (localStorage) por <em>dia</em>. Agora o link é único para todos.</div>
+        <div class="col-12 hint">Dica: gere o relatório ao fim do dia. Os dados ficam salvos no aparelho (localStorage) por <em>dia</em>.</div>
       </div>
     </section>
 
@@ -197,16 +197,13 @@
 (function(){
   const $ = (sel)=>document.querySelector(sel);
   const params = new URLSearchParams(location.search);
-  // Suporte opcional aos parâmetros existentes (logo e brand continuam válidos)
-  const logoURLParam = params.get('logo');
+  const logoURLParam = params.get('logo');  // ainda aceitamos override por URL
   const brandParam = params.get('brand');
   const todayStr = new Date().toISOString().slice(0,10);
-  // Agora a chave NÃO depende de vendedora; o nome fica em cada lead
   const KEY = (d=todayStr)=>`plugpap:diario:${d}`;
   const THEME_KEY = `plugpap:theme`;
   const LOGO_KEY = `plugpap:logo`;
 
-  // Elements
   const logoImg = $('#logoImg');
   const logoFallback = $('#logoFallback');
   const brandPicker = $('#brandPicker');
@@ -219,19 +216,19 @@
   const tbody = document.querySelector('#leadsTable tbody');
   const kpis = $('#kpis');
 
-  // Init UI
   inputs.data.value = todayStr;
 
-  // Theme & Logo load order: URL param > stored > default
+  // THEME
   const storedTheme = JSON.parse(localStorage.getItem(THEME_KEY) || 'null');
   if(storedTheme && storedTheme.brand){ setBrand(storedTheme.brand); brandPicker.value = toColorValue(storedTheme.brand); }
   if(brandParam){ setBrand(brandParam); brandPicker.value = toColorValue(brandParam); }
 
+  // LOGO: prioridade = URL param > stored > default logo.png
   const storedLogo = localStorage.getItem(LOGO_KEY);
-  if(storedLogo){ setLogo(storedLogo); }
   if(logoURLParam){ setLogo(logoURLParam); }
+  else if(storedLogo){ setLogo(storedLogo); }
+  else { setLogo('logo.png'); }
 
-  // Render table/kpis
   render();
 
   // Handlers
@@ -260,7 +257,9 @@
 
   function setLogo(src){
     if(!src){ logoImg.style.display='none'; logoFallback.style.display='grid'; return; }
-    logoImg.src = src; logoImg.onload = ()=>{ logoImg.style.display='block'; logoFallback.style.display='none'; };
+    logoImg.onerror = ()=>{ logoImg.style.display='none'; logoFallback.style.display='grid'; };
+    logoImg.onload = ()=>{ logoImg.style.display='block'; logoFallback.style.display='none'; };
+    logoImg.src = src;
   }
 
   function toColorValue(val){
@@ -364,7 +363,6 @@
     const neg = (byStatus['Em negociação']||[]).length;
     const conv = total? ((ganhos/total)*100).toFixed(1): '0.0';
 
-    // Por vendedora
     const byVen = group(leads, 'vendedora');
 
     kpis.innerHTML = '';
@@ -383,7 +381,6 @@
       kpis.appendChild(c);
     });
 
-    // Card por vendedora (até 6 vendedoras diferentes)
     Object.keys(byVen).slice(0,6).forEach(name=>{
       const n = byVen[name].length;
       const c = document.createElement('div');
