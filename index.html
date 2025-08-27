@@ -6,24 +6,13 @@
   <title>CRM PAP – Plug Soluções</title>
   <style>
     :root {
-      --bg:#ffffff;
-      --panel:#ffffff;
-      --txt:#0f172a;
-      --muted:#6b7280;
-      --brand:#001952;
-      --accent:var(--brand);
-      --stroke:#e5e7eb;
-      --stroke-strong:#cbd5e1;
-      --shadow:0 6px 18px rgba(2,6,23,.06);
+      --bg:#ffffff; --panel:#ffffff; --txt:#0f172a; --muted:#6b7280;
+      --brand:#001952; --accent:var(--brand);
+      --stroke:#e5e7eb; --stroke-strong:#cbd5e1; --shadow:0 6px 18px rgba(2,6,23,.06);
     }
     [data-theme="dark"] {
-      --bg:#0f172a;
-      --panel:#1e293b;
-      --txt:#f1f5f9;
-      --muted:#94a3b8;
-      --stroke:#334155;
-      --stroke-strong:#475569;
-      --shadow:0 6px 18px rgba(0,0,0,.6);
+      --bg:#0f172a; --panel:#1e293b; --txt:#f1f5f9; --muted:#94a3b8;
+      --stroke:#334155; --stroke-strong:#475569; --shadow:0 6px 18px rgba(0,0,0,.6);
     }
     body {margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--txt);}
     .wrap{max-width:980px;margin:24px auto;padding:0 16px}
@@ -50,6 +39,8 @@
     .kpi .card{flex:1 1 160px;background:var(--panel);border:1px solid var(--stroke);border-radius:12px;padding:12px;text-align:center}
     .kpi .card .n{font-weight:700;font-size:18px}
     .footer{font-size:12px;color:var(--muted);margin-top:8px}
+    .toast{position:fixed;right:16px;bottom:16px;background:#16a34a;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s}
+    .toast.show{opacity:1;transform:none}
   </style>
 </head>
 <body data-theme="light">
@@ -59,7 +50,7 @@
         <div class="logo"><img src="logo.png" alt="Logo" onerror="this.style.display='none'"></div>
         <h1>CRM PAP – Plug Soluções</h1>
       </div>
-      <button id="toggleTheme">🌙/☀️</button>
+      <button id="toggleTheme" type="button" title="Claro/Escuro">🌙/☀️</button>
     </header>
 
     <section class="panel">
@@ -81,10 +72,10 @@
           <input id="empresa" placeholder="Ex.: Contábil Minas LTDA" />
         </div>
         <div class="col-12 actions">
-          <button class="primary" id="addBtn">Adicionar Lead</button>
-          <button id="csvBtn">Exportar CSV</button>
-          <button class="warn" id="whatsBtn">Copiar WhatsApp</button>
-          <button class="danger" id="resetBtn">Zerar dia</button>
+          <button class="primary" id="addBtn" type="button">Adicionar Lead</button>
+          <button id="csvBtn" type="button">Exportar CSV</button>
+          <button class="warn" id="whatsBtn" type="button">Copiar WhatsApp</button>
+          <button class="danger" id="resetBtn" type="button">Zerar dia</button>
         </div>
       </div>
     </section>
@@ -101,6 +92,8 @@
     <footer class="footer">Plug Soluções • CRM PAP • Claro/Escuro</footer>
   </div>
 
+  <div class="toast" id="toast">Lead adicionado!</div>
+
 <script>
 (function(){
   const $=(s)=>document.querySelector(s);
@@ -108,23 +101,34 @@
   const KEY="crm:"+today;
 
   const inputs={ven:$('#vendedor'),lead:$('#lead'),tel:$('#telefone'),emp:$('#empresa')};
-  const tbody=$('#leadsTable tbody'),kpis=$('#kpis');
+  const tbody=$('#leadsTable tbody'),kpis=$('#kpis'),toast=$('#toast');
 
-  $('#addBtn').onclick=()=>{addLead()};
+  // UUID com fallback (evita erro em browsers sem crypto.randomUUID)
+  function uuid(){
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    const s = Date.now().toString(16) + Math.random().toString(16).slice(2);
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = parseInt(s[Math.floor(Math.random()*s.length)],16) || Math.floor(Math.random()*16);
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  $('#addBtn').onclick=addLead;
   $('#resetBtn').onclick=()=>{if(confirm('Zerar dia?')){localStorage.removeItem(KEY);render();}};
-  $('#csvBtn').onclick=()=>exportCSV();
-  $('#whatsBtn').onclick=()=>copyWhats();
+  $('#csvBtn').onclick=exportCSV;
+  $('#whatsBtn').onclick=copyWhats;
   $('#toggleTheme').onclick=()=>{
     const body=document.body;
     body.dataset.theme=body.dataset.theme==="light"?"dark":"light";
   };
 
-  function getData(){return JSON.parse(localStorage.getItem(KEY)||'{"leads":[]}');}
+  function getData(){try{return JSON.parse(localStorage.getItem(KEY)||'{"leads":[]}');}catch(e){return {leads:[]};}}
   function setData(d){localStorage.setItem(KEY,JSON.stringify(d));}
   function addLead(){
-    const L={vendedor:inputs.ven.value,lead:inputs.lead.value,tel:inputs.tel.value,emp:inputs.emp.value,id:crypto.randomUUID()};
+    const L={vendedor:inputs.ven.value.trim(),lead:inputs.lead.value.trim(),tel:inputs.tel.value.trim(),emp:inputs.emp.value.trim(),id:uuid()};
     if(!L.vendedor||!L.lead){alert('Preencha vendedor e lead');return;}
-    const d=getData();d.leads.push(L);setData(d);clear();render();
+    const d=getData();d.leads.push(L);setData(d);clear();render();showToast();
   }
   function clear(){inputs.ven.value=inputs.lead.value=inputs.tel.value=inputs.emp.value="";}
   function render(){
@@ -142,22 +146,28 @@
     kpis.innerHTML="";const total=leads.length;
     const byVen={};leads.forEach(l=>byVen[l.vendedor]=(byVen[l.vendedor]||0)+1);
     kpis.appendChild(card(total,"Total leads"));
-    Object.keys(byVen).forEach(v=>kpis.appendChild(card(byVen[v],"Leads – "+v)));
+    Object.keys(byVen).forEach(v=>kpis.appendChild(card(byVen[v],"Leads – "+(v||'Sem nome'))));
   }
   function card(n,t){const c=document.createElement('div');c.className='card';c.innerHTML=`<div class="n">${n}</div><div>${t}</div>`;return c;}
   function esc(s){return (s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[m]));}
   function exportCSV(){
-    const {leads}=getData();if(!leads.length){alert("Nada");return;}
+    const {leads}=getData();if(!leads.length){alert("Nada para exportar");return;}
     const rows=[["Vendedor","Lead","Telefone","Empresa"]].concat(leads.map(L=>[L.vendedor,L.lead,L.tel,L.emp]));
-    const csv=rows.map(r=>r.map(c=>`"${c}"`).join(";")).join("\n");
+    const csv=rows.map(r=>r.map(c=>`"${(c||'').replace(/"/g,'""')}"`).join(";")).join("\n");
     download("leads_"+today+".csv",csv);
   }
-  function download(fn,content){const blob=new Blob([content],{type:"text/csv"});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();}
+  function download(fn,content){const blob=new Blob([content],{type:"text/csv"});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);}
   function copyWhats(){
-    const {leads}=getData();if(!leads.length){alert("Nada");return;}
-    const txt=["Relatório – "+today,"Total: "+leads.length,""].concat(leads.map(L=>`- ${L.lead} | ${L.tel} | ${L.emp} | Vend: ${L.vendedor}`)).join("\n");
-    navigator.clipboard.writeText(txt).then(()=>alert("Copiado!"));
+    const {leads}=getData();if(!leads.length){alert("Nada para copiar");return;}
+    const txt=["Relatório – "+today,"Total: "+leads.length,""].concat(leads.map(L=>`- ${L.lead} | ${L.tel||'s/tel'} | ${L.emp||'s/empresa'} | Vend: ${L.vendedor||'—'}`)).join("\n");
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>showToast('Relatório copiado!'));}
+    else{window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');}
   }
+  function showToast(msg){
+    if(msg) toast.textContent=msg; else toast.textContent='Lead adicionado!';
+    toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1500);
+  }
+  // Inicializar
   render();
 })();
 </script>
